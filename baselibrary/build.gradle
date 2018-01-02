@@ -1,0 +1,116 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+android {
+    compileSdkVersion 26
+
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 26
+
+    }
+
+}
+
+dependencies {
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support:recyclerview-v7:26.1.0'
+    implementation 'com.google.code.gson:gson:2.2.4'
+    implementation 'com.github.bumptech.glide:glide:3.7.0'
+    implementation 'jp.wasabeef:glide-transformations:2.0.1'
+}
+
+// 项目引用的版本号
+version="1.0.0"
+
+// 项目主页。
+def siteUrl ='https://github.com/CoderCF/BaseLibrary'
+// Git仓库的url。（此处一定要是ssh链接）
+def gitUrl ='git@github.com:CoderCF/BaseLibrary.git'
+
+// 唯一包名
+group = "com.codercf"
+
+install {
+    repositories.mavenInstaller{
+// 生成pom.xml和参数
+        pom {
+            project{
+                packaging'aar'
+                name'BaseLibrary For Android'// 可选，项目名称。
+                description'The Android build the framework of the base library.'// 可选，项目描述。
+                url siteUrl// 项目主页，这里是引用上面定义好。
+// 软件开源协议
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                //开发者基本信息
+                developers {
+                    developer {
+                        id 'codercf'// 开发者的id。
+                        name 'codercf'// 开发者名字。
+                        email 'codercf116@sina.com'// 开发者邮箱。
+                    }
+                }
+
+                scm {
+                    connection gitUrl// Git仓库地址。
+                    developerConnection gitUrl// Git仓库地址。
+                    url siteUrl// 项目主页。
+                }
+            }
+        }
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier='sources'
+}
+
+task javadoc(type: Javadoc) {
+    options { //如果项目包含中文，最好配置上options,如果没有中文，options这一整项可不要
+        encoding "UTF-8"
+        charSet 'UTF-8'
+        author true
+        version true
+        links "http://docs.oracle.com/javase/7/docs/api"
+    }
+    source= android.sourceSets.main.java.srcDirs
+    classpath+=project.files(android.getBootClasspath().join(File.pathSeparator))
+// destinationDir = file("../javadoc/")
+// 忽略注释语法错误，如果用jdk1.8你的注释写的不规范就编译不过。（如果电脑上有JDK1.9，配置之后还报错，一定要卸载JDK1.9，切记）
+    failOnError false
+}
+
+task javadocJar(type: Jar,dependsOn: javadoc) {
+    classifier='javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+bintray {
+    user = properties.getProperty("bintray.user")// Bintray的用户名。
+    key = properties.getProperty("bintray.apikey")// Bintray刚才保存的ApiKey。
+    configurations = ['archives']
+    pkg {
+        repo ="maven"// 上传到maven库。
+        name ="baselibrary"
+        userOrg ='codercf116' // Bintray的用户名。
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = ["Apache-2.0"]
+        publish =true// 是否是公开项目。
+    }
+
+}
+
